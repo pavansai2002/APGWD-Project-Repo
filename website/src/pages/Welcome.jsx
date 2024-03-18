@@ -3,32 +3,92 @@ import axios from "axios";
 import { Link, useLocation } from "react-router-dom";
 
 import Navibar from "../components/Navibar";
+import AdminNavBar from "./AdminNavBar";
 import Foot from "../components/Foot";
 import { useNavigate } from "react-router-dom";
+import FormDetails from "./FormDetails";
+import MapsForm from "../components/MapsForm";
+import NetworkMap from "../components/NetworkMap";
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
+//import NTR from "../data/NTR.json";
+//import Guntur from "../data/Guntur.json";
+//import Alluri from "../data/AlluriSitharamaRaju.json";
+
+import Alluri from "../data/AlluriSitharamaRaju.json";
+import Anakapalli from "../data/Anakapalli.json";
+import Anantha from "../data/Ananthapuramu.json";
+import Annamayya from "../data/Annamayya.json";
+import Bapatla from "../data/Bapatla.json";
+import Chittoor from "../data/Chittoor.json";
+import Ambedkar from "../data/DrBRAmbedkarKonaseema.json";
+import East from "../data/EastGodavari.json";
+import Eluru from "../data/Eluru.json";
+import Guntur from "../data/Guntur.json";
+import Kakinada from "../data/Kakinada.json";
+import Krishna from "../data/Krishna.json";
+import Kurnool from "../data/Kurnool.json";
+import Nandyala from "../data/Nandyala.json";
+import NTR from "../data/NTR.json";
+import Palnadu from "../data/Palnadu.json";
+import Parvathi from "../data/ParvathipuramManyam.json";
+import Prakasam from "../data/Prakasam.json";
+import SPSR from "../data/SPSRNellore.json";
+import Srikakulam from "../data/Srikakulam.json";
+import SriSathyaSai from "../data/SriSathyaSai.json";
+import Tirupati from "../data/Tirupati.json";
+import Visakha from "../data/Visakhapatnam.json";
+import Vizianagaram from "../data/Vizianagaram.json";
+import West from "../data/WestGodavari.json";
+import YSR from "../data/YSRKadapa.json";
+
+//john@2022 - GWADPESHI
+//pgnw7530 - HSECTION
+//Apsgwd123 - APWARIMS
 
 const Welcome = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
   const [search, setSearch] = useState("");
   const [district, setDistrict] = useState([]);
   const [updateValues, setUpdateValues] = useState({}); // Use an object to store update values for each city
   // const {userDistrict}=props.data;
   const location = useLocation();
   const userDistrict = location.state.district;
-  const editname=location.state.name;
+  const editname = location.state.name;
+
+  const EMP_GET_ROUTE = import.meta.env.VITE_EMPLOYEE_RETRIEVE_ROUTE;
+  const EMP_SET_ROUTE = import.meta.env.VITE_EMPLOYEE_UPDATE_ROUTE;
+
   // Define the fetchData function
   const fetchData = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:8000/employeeretrieve",
-        { params: { userDistrict } }
-      );
+      const response = await axios.get(EMP_GET_ROUTE, {
+        params: { userDistrict },
+      });
       setDistrict(response.data);
+      
+    handleData(userDistrict);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   };
+
+  const [selectedData, setSelectedData] = useState(null);
+
+  const handleData = (disdata) => {
+    setSelectedData(disdata);
+  };
+  console.log(selectedData);
+  
+  // console.log(typeof(selectedData));
+
+  let districtsData = [{ "NTR": NTR }, { "guntur": Guntur }];
+
+  console.log(districtsData.find(item => item[selectedData]));
 
   // Fetch data from the server when the component mounts
   useEffect(() => {
@@ -37,14 +97,13 @@ const Welcome = () => {
 
   const handleUpdate = async (city) => {
     try {
-      const response = await axios.post("http://localhost:8000/update", {
+      const response = await axios.post(EMP_SET_ROUTE, {
         cityId: city._id,
-        newValue: updateValues[city._id] || "", // Use the specific updateValue for the city
-        editname
+        newValue: updateValues[city._id] || "",
+        editname,
       });
 
       if (response.data.success) {
-        // Refresh the data after a successful update
         fetchData();
       } else {
         console.error("Update failed.");
@@ -71,56 +130,119 @@ const Welcome = () => {
   };
 
   const navigate = useNavigate();
-
+  const [showUserProfile, setShowUserProfile] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [showUploadBody, setShowUploadBody] = useState(false);
   const [showLatLngBody, setShowLatLngBody] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState({
+    lat: 28.7041,
+    lng: 77.1025,
+  });
 
   const handleFormButtonClick = () => {
     // navigate("/filldetails");
     setShowForm(true);
     setShowUploadBody(false);
     setShowLatLngBody(false);
+    setShowUserProfile(false);
   };
 
   const handleExcelButtonClick = () => {
     setShowForm(false);
     setShowUploadBody(true);
     setShowLatLngBody(false);
+    setShowUserProfile(false);
   };
 
   const handleLatLngButtonClick = () => {
     setShowForm(false);
     setShowUploadBody(false);
     setShowLatLngBody(true);
+    setShowUserProfile(false);
+  };
+  const handleUserButtonClick = () => {
+    setShowForm(false);
+    setShowUploadBody(false);
+    setShowLatLngBody(false);
+    setShowUserProfile(true);
+  };
+  const handleHomeClick = () => {
+    // Navigate to the home page
+    navigate("/");
   };
 
- 
   return (
     <div>
-      <Navibar />
-      <div className="admin-land">
-      <div className="weltext">
-              <h1>
-                Select Any One&nbsp;<p>Option </p> From Below
-              </h1>
-            </div>
-            <div className="buttons-da">
-              <button
-                className="button-56"
-                onClick={handleFormButtonClick}
-                role="button"
-              >
-                Enter details via form
-              </button>
-              <button className="button-56"  onClick={handleExcelButtonClick} role="button">
-                Upload details via Excel file
-              </button>
-            
-              <button className="button-56" onClick={handleLatLngButtonClick} role="button">
-                Lattitude and Longitude
-              </button>
-            </div></div>
+      {/* <Navibar /> */}
+      <AdminNavBar username={editname} />
+
+      <div className="burger" onClick={toggleMenu}>
+        <span>☰</span>
+      </div>
+
+      <div className={`links-da ${isMenuOpen ? "show" : ""}`}>
+        <ul>
+          <li>
+            <button className="wierd" role="button" onClick={handleHomeClick}>
+              Home
+            </button>
+          </li>
+          <li>
+            <button
+              className="wierd"
+              onClick={handleFormButtonClick}
+              role="button"
+            >
+              Enter details via form
+            </button>
+          </li>
+          <li>
+            <button
+              className="wierd"
+              onClick={handleExcelButtonClick}
+              role="button"
+            >
+              Upload details via Excel file
+            </button>
+          </li>
+          <li>
+            <button
+              className="wierd"
+              onClick={handleLatLngButtonClick}
+              role="button"
+            >
+              Lattitude and Longitude
+            </button>
+          </li>
+          <li>
+            <button
+              className="wierd"
+              onClick={handleUserButtonClick}
+              role="button"
+            >
+              User Profile
+            </button>
+          </li>
+          {/* <li>
+            <a href="#about">ABOUT US</a>
+          </li> */}
+        </ul>
+      </div>
+
+      <br />
+      <div className="Admin-title">
+        <h1>
+          Welcome {userDistrict} District, Field Officer {editname} !!
+        </h1>
+        <br />
+      </div>
+
+      {/* <div className="admin-land">
+        <div className="weltext">
+          
+        </div>
+        
+      </div> */}
       {/* <div className={`wrapper`}>
         <div className={`login-text ${isExpanded ? "expand" : ""}`}>
           <button className="cta" onClick={handleButtonClick}>
@@ -139,15 +261,12 @@ const Welcome = () => {
       </div> */}
 
       <div>
-      {showForm ? (
-      <div className="body">
-      
-        <div className="container" id="container">
-          
-          <h1>Enter the city</h1>
-            <div className="emplo-city">
-
-            <button className="btn-search" type="button">
+        {showForm ? (
+          <div className="body">
+            <div className="container" id="container">
+              <h1>Choose your Mandal</h1>
+              <div className="emplo-city">
+                <button className="btn-search" type="button">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -157,91 +276,48 @@ const Welcome = () => {
                     <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path>
                   </svg>
                 </button>
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="input-p"
-            /></div>
-
-            <br />
-            <center >
-        <div className="admin-das">
-            
-            {district
-              .filter((city) => city.name.includes(search))
-              .map((city) => (
-                <div
-                  key={city._id}
-                  style={{
-                    padding: "10px",
-                    color: city.value === null ? "red" : "green",
-                  }}
-                > <div className="admina">
-                  <h3>{city.name} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u style={{color: "black"}}>Value:</u> {city.value}</h3>
-                  
-                  
-                  {/* Input for updating value */}
-                  
-                  {city.value === null && (
-                    <>
-                      <input
-                        type="text"
-                        value={updateValues[city._id] || ""}
-                        onChange={(e) =>
-                          setUpdateValues({
-                            ...updateValues,
-                            [city._id]: e.target.value,
-                          })
-                        }
-                      />
-                      <button onClick={() => handleUpdate(city)}>
-                        Update Value
-                      </button>
-                    </>
-                  )}</div>
-                </div>
-              ))}</div>
-              
-          </center>
-          
-          {/* <div class="overlay-container">
-            <div class="overlay">
-              <div class="overlay-panel overlay-right">
-                <h1>Hello, Employee!</h1>
-                <h2>&nbsp;</h2>
-                <p>Enter the location details and let the District Director <br/> decide the value !! </p>
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="input-p"
+                />
               </div>
+              {/* Pass the search term and data to the NetworkMap component */}
+              {/* <NetworkMap data= {NTR} search={search} /> */}
+              {selectedData && (
+                <NetworkMap
+                  data={districtsData.find((item) => item[selectedData])}
+                  search={search}
+                />
+              )}
             </div>
-          </div> */}
-
-{/* <div className="form-container "> */}
-            
-            
-        {/* </div> */}
-
-
-        </div>
-        </div>
+          </div>
         ) : null}
       </div>
 
       <div>
-      {showUploadBody && (
-        <div className="Excel-da">
-            <h1>Ohh bulliguva RDX2.0</h1>
-        </div>
+        {showUploadBody && (
+          <div className="Excel-da">
+            {/* <h1>Need to create the button </h1> */}
+            <button class="favorite styled" type="button">
+              Upload your Sheet
+            </button>
+          </div>
         )}
       </div>
 
       <div>
-      {showLatLngBody && (
-        <div className="Latt-da">
-          <h1>Hello AP; Bye Bye YCP !</h1>
-        </div>)}
+        {showLatLngBody && (
+          <div className="Latt-da">
+            <h1>Click on Allow Access</h1>
+            <MapsForm selectedLocation={selectedLocation} />
+          </div>
+        )}
       </div>
+      <div>{showUserProfile && <FormDetails editname={editname} />}</div>
       <div className="welcfoot">
-      <Foot/>
+        <Foot />
       </div>
     </div>
   );

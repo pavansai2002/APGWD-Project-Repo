@@ -1,16 +1,20 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const multer = require('multer');
 const cors = require("cors");
 
 const AuthModel = require("./models/Auth");
 
 const User = require("./db/user");
 const District = require("./db/district");
+const bcrypt = require('bcrypt');
 
 const app = express();
 
 app.use(express.json());
 app.use(cors());
+
+
 
 // mongoose.connect("mongodb+srv://apgwd:apgwd@apgwd.q3uwssp.mongodb.net/data?retryWrites=true&w=majority")
 mongoose
@@ -24,11 +28,55 @@ mongoose
     console.log(err);
   });
 
+const storage = multer.memoryStorage(); // Store the file in memory
+const upload = multer({ storage: storage });
+
 app.post("/signup", (req, res) => {
   AuthModel.create(req.body)
     .then((auth) => res.json(auth))
     .catch((err) => res.json(err));
 });
+
+// check this 
+// app.post('/profileupload/:username', upload.single('photo'), async (req, res) => {
+//   try {
+//     const { username } = req.params;
+//     const user = await User.findOneAndUpdate({ username }, { photo: req.file.buffer.toString('base64') });
+//     res.status(200).json({ message: 'File uploaded successfully' });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// });
+
+app.post('/profileupload', async (req, res) => {
+  try {
+    const { photo1, address, name,editname } = req.body;
+    console.log(photo1, address, name);
+    
+    const user = await User.findOneAndUpdate(
+      { username: editname }, // Query to find the user by name
+      {
+        $set: {
+          image: photo1,
+          address: address,
+          username:name
+        }
+      },
+      { new: true } // Return the updated document
+    );
+
+    if (!user) {
+      console.log('fdfd0');
+    }
+
+    res.status(200).json({ message: 'File uploaded successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 
 // app.post("/login", (req,res) => {
 //     const {email, password} = req.body;
@@ -114,7 +162,26 @@ app.post("/login", async (req, res) => {
     res.status(500).json({ error: "Login failed" });
   }
 });
+// app.post("/login", async (req, res) => {
+//   try {
+//     const { username, password } = req.body;
+//     const user = await User.findOne({ username });
 
+//     if (!user) {
+//       return res.status(401).json({ error: "Invalid username or password" });
+//     }
+
+//     const isMatch = await bcrypt.compare(password, user.password);
+
+//     if (!isMatch) {
+//       return res.status(401).json({ error: "Invalid username or password" });
+//     }
+
+//     // Rest of your login logic...
+//   } catch (error) {
+//     res.status(500).json({ error: "Login failed" });
+//   }
+// });
 //employee Retrieve
 app.get("/employeeretrieve", async (req, res) => {
   try {
@@ -382,6 +449,62 @@ app.post("/employeetransfer", async (req, res) => {
   } catch (error) {
     console.error("Error updating records:", error);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+//admin submits all the values
+app.post('/adminsubmitall', async (req, res) => {
+  const { cityIds } = req.body;
+
+  try {
+    for (const cityId of cityIds) {
+      const city = await District.findById(cityId);
+
+      if (city) {
+        await District.findByIdAndUpdate(cityId, { finalvalue: city.value });
+      } else {
+        console.error(`City with ID ${cityId} not found`);
+      }
+    }
+
+    res.json({ success: true, message: 'Submit all successful' });
+  } catch (error) {
+    console.error('Error submitting all:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
+
+//admin cancel all the values
+app.post('/admincancelall', async (req, res) => {
+  const { cityIds } = req.body;
+
+  try {
+    for (const cityId of cityIds) {
+      const city = await District.findById(cityId);
+
+      if (city) {
+        await District.findByIdAndUpdate(cityId, { finalvalue: null, value: null });
+      } else {
+        console.error(`City with ID ${cityId} not found`);
+      }
+    }
+
+    res.json({ success: true, message: 'Submit all successful' });
+  } catch (error) {
+    console.error('Error submitting all:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
+app.get('/getalldd', async (req, res) => {
+  try {
+    const admins = await User.find({ designation: 'admin' });
+    res.json(admins);
+  } catch (error) {
+    console.error('Error finding admins:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 

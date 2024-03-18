@@ -9,10 +9,18 @@ function Signup() {
     const [email, setEmail] = useState();
     const [password, setPassword] = useState();
     const navigate = useNavigate();
+    
+  const divStyle = {
+    backgroundImage: 'url("signbg.png")'
+  };
+
+  const divlStyle = {
+    backgroundImage: "url('/login-bg.png')"
+  };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        axios.post("http://localhost:8000/signup", {name, email, password })
+        axios.post("https://apgwd-backend-service.onrender.com/signup", {name, email, password })
         .then(res => {console.log(res)
             navigate('/login')
         })
@@ -22,8 +30,8 @@ function Signup() {
     return (
         <div>
             <Navibar/>
-        <div className="login-container">
-            <div className="login-content">
+        <div className="login-container" style={divStyle}>
+            <div className="login-content" style={divlStyle}>
                 <h2>SignUP Now</h2> <br/>
                 <form onSubmit={handleSubmit}>
 
